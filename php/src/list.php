@@ -1,33 +1,44 @@
 <?php
-//These are the defined authentication environment in the db service
-
-// The MySQL service named in the docker-compose.yml.
+// Database connection info
 $host = 'db';
-
-// Database use name
 $user = 'root';
-
-//database user password
 $pass = '123456';
-
-// database name
 $mydatabase = 'lms';
-// check the mysql connection status
 
+// Create connection
 $conn = new mysqli($host, $user, $pass, $mydatabase);
 
-// select query
-$sql = 'SELECT * FROM books';
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
 
-if ($result = $conn->query($sql)) {
-    while ($data = $result->fetch_object()) {
-        $books[] = $data;
+// Run query
+$sql = "SELECT * FROM books";
+$result = $conn->query($sql);
+
+// Check if rows exist
+if ($result->num_rows > 0) {
+    // Fetch column names
+    echo "<table border='1' cellpadding='5' cellspacing='0'>";
+    echo "<tr>";
+    while ($fieldinfo = $result->fetch_field()) {
+        echo "<th>" . $fieldinfo->name . "</th>";
     }
+    echo "</tr>";
+
+    // Fetch rows
+    while ($row = $result->fetch_assoc()) {
+        echo "<tr>";
+        foreach ($row as $col) {
+            echo "<td>" . htmlspecialchars($col) . "</td>";
+        }
+        echo "</tr>";
+    }
+    echo "</table>";
+} else {
+    echo "No records found.";
 }
 
-foreach ($books as $book) {
-    echo "<br>";
-    echo $book->bookid . " " . $book->title;
-    echo "<br>";
-}
+$conn->close();
 ?>
